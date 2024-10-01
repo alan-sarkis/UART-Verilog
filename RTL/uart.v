@@ -13,7 +13,7 @@ parameter baud = 9600;
 
 parameter wait_count = clk_value / baud;
 
-reg bitDone = 0;
+reg trigger = 0;
 integer count = 0;
 parameter idle = 0, send = 1, check = 2;
 reg [1:0] state = idle;
@@ -26,12 +26,12 @@ always@(posedge clk)begin
     end
     else begin
         if (count == wait_count)begin
-            bitDone <= 1'b1;
+            trigger <= 1'b1;
             count <= 0;
         end
         else begin
             count <= count + 1;
-            bitDone <= 1'b0;
+            trigger <= 1'b0;
         end
     end
 end
@@ -70,7 +70,7 @@ always@(posedge clk)begin
     check: 
         begin
             if(bitIndex <= 9)begin
-                if(bitDone == 1)begin
+                if(trigger == 1)begin
                     state <= send;
                     bitIndex <= bitIndex + 1;
                 end
@@ -86,7 +86,7 @@ always@(posedge clk)begin
 
 end
 
-assign txdone = (bitIndex == 9 && bitDone == 1'b1) ? 1'b1 : 1'b0;
+assign txdone = (bitIndex == 9 && trigger == 1'b1) ? 1'b1 : 1'b0;
 
 
 ///////// Reciever //////////
@@ -127,7 +127,7 @@ always@(posedge clk)begin
     recv:
         begin
             if(rindex <= 9)begin
-                if(bitDone == 1'b1)begin
+                if(trigger == 1'b1)begin
                     rindex <= rindex + 1;
                     rstate <= rwait;
                 end
@@ -144,7 +144,7 @@ always@(posedge clk)begin
 end
 
 assign rxout = rxdata[8:1];
-assign rxdone = (rindex == 9 && bitDone == 1'b1) ? 1'b1 : 1'b0;
+assign rxdone = (rindex == 9 && trigger == 1'b1) ? 1'b1 : 1'b0;
 
 
 
